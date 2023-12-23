@@ -1,0 +1,805 @@
+openapi: 3.0.3
+info:
+  title: Course API
+  description: |-
+    This is a Course API based on the OpenAPI V3 specification.
+  version: "1.0"
+servers:
+  - url: https://cis3760f23-11.socs.uoguelph.ca/api/v1
+tags:
+  - name: course
+    description: CRUD methods for course data
+  - name: prereq
+    description: Methods to obtain prerequisite information
+  - name: subject
+    description: Methods to work with subject department
+  - name: student
+    description: Methods to work with students
+paths:
+  /course/{courseCode}:
+    get:
+      tags:
+        - course
+      summary: Find course by course code
+      description: Returns a single course
+      operationId: getCourse
+      parameters:
+        - name: courseCode
+          in: path
+          description: Course code of course to return
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '404':
+          description: No course found
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  - message: Course not found.
+    delete:
+      tags:
+        - course
+      summary: Deletes a course
+      description: Delete a course from the database
+      operationId: deleteCourse
+      parameters:
+        - name: courseCode
+          in: path
+          description: Course code of course to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: Record deleted
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  - message: Record deleted.
+        '404':
+          descrpition: Course not found
+          content:
+            application/json:
+              schema: 
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  - message: Course not found.
+        '500':
+          description: Internal server error."
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  - message: Internal server error.
+  /course:
+    post:
+      tags:
+        - course
+      summary: Add a new course
+      description: Add a new course to the database
+      operationId: createCourse
+      requestBody:
+        description: Add a new course to the database
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+        required: true
+      responses:
+        '200':
+          description: Course created
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  - message: Course created.        
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  - message: Conflict.
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  - message: Internal server error.
+    put:
+      tags:
+        - course
+      summary: Update an existing course
+      description: Update an existing course in the database
+      operationId: updateCourse
+      requestBody:
+        description: Update an existing course in the database
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+        required: true
+      responses:
+        '202':
+          description: Course updated
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  - message: Course updated.        
+        '404':
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  - message: Course not found.
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  - message: Internal server error.
+  /prereq/{courseCode}:
+    get:
+      tags:
+        - prereq
+      summary: Find prereqs for a course
+      description: Find prereqs for a course
+      operationId: getPrereqs
+      parameters:
+        - name: courseCode
+          in: path
+          description: Course code of prereqs to return
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    Prerequisites:
+                      type: string
+                example:
+                  - Prerequisites: CIS*2520, (CIS*2430 or ENGG*1420)
+        '404':
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  - message: Course not found.
+  /prereq/compiled/{courseCode}:
+    get:
+      tags:
+        - prereq
+      summary: Get the compiled version of a prerequisite that is used internally. This can be used for further local processing.
+      description: Returns the compiled prerequisites for a given course code
+      operationId: getCompiledPrereq
+      parameters:
+        - name: courseCode
+          in: path
+          description: Course code of compiled prerequisites to return
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content: 
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    data:
+                      type: [string, integer, object]
+                example:
+                  - type: open_bracket
+                    data: (
+                  - type: code
+                    data: CIS*1300  
+                  - type: close_bracket
+                    data: )    
+        '404':
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  - message: Course not found.
+  /prereq/compiled:
+    post:
+      tags:
+        - prereq
+      summary: Get the compiled versions of prerequisites from a list of course codes.
+      description: Get the compiled versions of prerequisites from a list of course codes. This can be useful for further processing locally.
+      operationId: postCompiledPrereq
+      requestBody:
+        description: A list of course codes
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrereqList'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                      data:
+                        type: string
+                example:
+                - []
+                - 
+                  - type: code
+                    data: CIS*1300
+        '400':
+          description: Bad request."
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: Bad request.
+        '404':
+          description: No prerequisites found
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: No prerequisites found.
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: Internal server error.
+  /prereq/future/{courseCode}:
+    get:
+      tags:
+        - prereq
+      summary: Get all courses that have the given course code as a prerequisite
+      description: Get all courses that have the given course code as a prerequisite
+      operationId: getFuturePrereqs
+      parameters:
+        - name: courseCode
+          in: path
+          description: Course code of prereqs to return
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '404':
+          description: No prerequisites found
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: No courses found.
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: Internal server error.
+  /prereq/future/none:
+    get:
+      tags:
+        - prereq
+      summary: Get all courses that have N/A as their prerequisites
+      description: Get all courses that have N/A as their prerequisites
+      operationId: getFuturePrereqsNone
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: Internal server error.
+  /prereq/future/:
+    post:
+      tags:
+        - prereq
+      summary: Find all courses whose prerequisites are satisfied by the provided course codes
+      description: Find all courses whose prerequisites are satisfied by the provided course codes
+      operationId: postFuturePrereqs
+      requestBody:
+        description: A list of prereqs as course codes
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrereqList'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example: 
+                  - message: Bad request.
+        '404':
+          description: No prerequisites found
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  - message: No prerequisites found.
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  - message: Internal server error.
+  /subject/all/:
+    get:
+      tags:
+        - subject
+      summary: Gets all course codes from the database
+      description: Gets all course codes from the database
+      operationId: getSubjectAll
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    CourseCode:
+                      type: string
+                example:
+                  - CourseCode: ACCT*1220
+                  - CourseCode: ACCT*1240
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: Internal server error.
+  /subject/{subjectCode}:
+    get:
+      tags:
+        - subject
+      summary: Find all courses within a subject code
+      description: Find all courses within a subject code
+      operationId: coursesInSubject
+      parameters:
+        - name: subjectCode
+          in: path
+          description: The subject code to get courses for
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '404':
+          description: Subject code not found
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  - message: Subject code not found.
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: Internal server error.
+  /student:
+    get:
+      tags:
+        - student
+      summary: Gets all entries in the student database
+      description: Gets all entries in the student database
+      operationId: getCourseTable
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: Internal server error. 
+  /student/{courseCode}:
+    post:
+      tags:
+        - student
+      summary: Create a new entry in the student database
+      description: Create a new entry in the student database
+      operationId: postCourseTable
+      parameters:
+        - name: courseCode
+          in: path
+          description: A course the student has taken
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: Record created
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example: 
+                  message: Record created.         
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: Conflict.
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: Internal server error.
+    delete:
+      tags:
+        - student
+      summary: Deletes a course from the student database
+      description: Deletes a course from the student database
+      operationId: deleteCourseTable
+      parameters:
+        - name: courseCode
+          in: path
+          description: Course code to delete from the student database
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: Record created
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example: 
+                  message: Record created.         
+        '404':
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: Course not found.
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: Internal server error.     
+  /student/{courseCode}/{grade}:
+    put:
+      tags:
+        - student
+      summary: Update the grade of a course in the student database
+      description: Update the grade of a course in the student database
+      operationId: putCourseTable
+      parameters:
+        - name: courseCode
+          in: path
+          description: A course the student has taken
+          required: true
+          schema:
+            type: string
+        - name: grade
+          in: path
+          description: The grade to assign to the class
+          required: true
+          schema: 
+            type: number 
+      responses:
+        '202':
+          description: Grade updated
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example: 
+                  message: Grade updated.  
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: Bad request.       
+        '404':
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: Course not found.
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: Internal server error. 
+components:
+  schemas:
+    Student:
+        type: array
+        items:
+          properties:
+            CourseCode:
+              type: string
+            CourseName:
+              type: string
+            Prerequisites:
+              type: string
+            Grade:
+              type: number
+        example:
+          - CourseCode: 'CIS*2750'
+            CourseName: 'Software Systems Development and Integration'
+            Prerequisites: 'CIS2430, CIS2520'
+            Grade: 85
+          - CourseCode: 'CIS*1910'
+            CourseName: 'Discrete Structures in Computing I'
+            Prerequisites: 'N/A'
+            Grade: 98     
+    Course:
+        type: array
+        items:
+          properties:
+            CourseCode:
+              type: string
+              example: 'CIS2750'
+            CourseName:
+              type: string
+              example: 'Software Systems Development and Integration'
+            CourseOffering:
+              type: string
+              example: 'Winter'
+            CourseWeight:
+              type: number
+              example: 0.75
+            CourseDescription:
+              type: string
+              example: 'Example desc'
+            Prerequisites:
+              type: string
+              example: 'CIS2430, CIS2520'
+            PrerequisiteCredits:
+              type: number
+              example: 5.0
+            Corequisites:
+              type: string
+              example: 'CIS3750'
+            Restrictions:
+              type: string
+              example: 'STAT2070'
+            Equates:
+              type: string
+              example: 'CIS3760'
+            Department:
+              type: string
+              example: 'School of Computer Science'
+            Location:
+              type: string
+              example: 'TBD'
+          required:
+            - courseCode
+            - courseName
+            - courseWeight
+            - courseDescription
+            - courseOffering
+    PrereqList:
+      type: array
+      items:
+        properties:
+          CourseCode:
+            type: string
+            example: 'CIS*3750'
+      required:
+        - CourseCode
+      example:
+        - CourseCode: 'CIS*1300'
+        - CourseCode: 'CIS*1910'

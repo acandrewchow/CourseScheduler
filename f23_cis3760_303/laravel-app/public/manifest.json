@@ -1,0 +1,11 @@
+{
+    "name": "CIS*3760 Group 303 Course Selector App",
+    "short_name": "group 303 app",
+    "description": "Welcome to the Course Selection tool for the University of Guelph! Our website provides information about various courses offered to students and an easy way to select and schedule courses.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#000000"
+
+}
+  
